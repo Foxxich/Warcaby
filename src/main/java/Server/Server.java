@@ -8,46 +8,107 @@ import java.util.concurrent.Executors;
 
 
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 public class Server {
 
-    public static void main(String[] args) throws Exception {
-        try (var listener = new ServerSocket(59898)) {
-            System.out.println("The chinese checkers server is running...");
-            var pool = Executors.newFixedThreadPool(20);
-            while (true) {
-                pool.execute(new Capitalizer(listener.accept()));
+    private int playerNumber;
+    private GameRules gameRules;
+
+    private static SharedData data;
+
+    public Server() {
+        data = SharedData.getInstance();
+    }
+
+    public static void broadcast(String message) {
+        Set<PlayerSocket> players = data.getPlayerSockets();
+        synchronized (players) {
+            for(PlayerSocket player : players) {
+                player.send(message);
             }
         }
     }
 
-    private static class Capitalizer implements Runnable {
-        private Socket socket;
 
-        Capitalizer(Socket socket) {
-            this.socket = socket;
+    private void getNewConfig() {
+        playerNumber = UserInterface.getInt("Podaj liczbe graczy.");
+        gameRules = new GameRules();
+    }
+
+    private void sendColorInfo() {
+        Set<String> colors = new HashSet<String>();
+        colors.add("WHITE");
+        colors.add("RED");
+        colors.add("BLUE");
+        colors.add("BLACK");
+        colors.add("GREEN");
+        colors.add("YELLOW");
+        Iterator<String> iter = data.getNames().iterator();
+        Iterator<String> col = colors.iterator();
+        while(iter.hasNext()) {
+            broadcast("COLOR_SET " + iter.next() + " " + col.next());
         }
 
-        @Override
-        public void run() {
-            System.out.println("Connected: " + socket);
-            try {
-                var in = new Scanner(socket.getInputStream());
-                var out = new PrintWriter(socket.getOutputStream(), true);
-                while (in.hasNextLine()) {
-                    out.println(in.nextLine().toUpperCase());
+    }
+
+    public void start() {
+        UserInterface.print("Starting server");
+        while(true) {
+            UserInterface.print("Starting game");
+
+            getNewConfig();
+
+            // Wait for players
+            UserInterface.print("Waiting for players");
+
+            int currentPlayerNumber = 0;
+
+            Executor pool = Executors.newFixedThreadPool(6);
+
+            try (ServerSocket listener = new ServerSocket(59001)) {
+                while(currentPlayerNumber < playerNumber) {
+                    pool.execute(new PlayerHandler(new PlayerSocket(listener.accept()), data));
                 }
-            } catch (Exception e) {
-                System.out.println("Error:" + socket);
-            } finally {
+            }
+            catch(IOException e) {
+
+            }
+
+            // Give all players informations about colors
+            sendColorInfo();
+
+            // Game
+            data.game = new Game(gameRules);
+            broadcast("GAME_START");
+
+            Iterator<String> playerNames = data.getNames().iterator();
+
+            while(data.game.ended()) {
+                if(!playerNames.hasNext())
+                    playerNames = data.getNames().iterator();
+
+                broadcast("MOVE_NOW " + playerNames.next());
                 try {
-                    socket.close();
-                } catch (IOException e) {
+                    pool.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-                System.out.println("Closed: " + socket);
+
             }
+
+
         }
     }
 
-
-
+    public static void main(String[] args) {
+        Server s = new Server();
+        s.start();
+    }
 }
