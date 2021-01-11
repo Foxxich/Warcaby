@@ -18,15 +18,16 @@ import javax.swing.JPanel;
 
 public class Board extends JPanel implements ActionListener, MouseMotionListener, MouseListener {
 
-    int[] fieldArray;
-    int size;
-    ArrayList<Pawn> pawns;
-    ArrayList<Field> fields;
-    ArrayList<Field> possibleFields;
-    ArrayList<Player> players;
-    Pawn activePawn;
-    Player whoseTurn;
-
+    private int[] fieldArray;
+    private int size;
+    private ArrayList<Pawn> pawns;
+    private ArrayList<Field> fields;
+    private ArrayList<Field> possibleFields;
+    private ArrayList<Player> players;
+    private Pawn activePawn;
+    private Player whoseTurn;
+    
+//initalizng board
     public Board(int size, GameConfig gameConfig) {
         this.size = size;
         this.fieldArray = gameConfig.fieldArray;
@@ -39,7 +40,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
         addMouseListener(this);
     }
 
-
+//colorizing
     public void paintComponent(Graphics g) {
         this.paintFields(g);
         if (this.activePawn != null) {
@@ -48,7 +49,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
         this.paintPawns(g);
         this.printPlayers(g);
     }
-
+//set pawns color according to players color
     private void paintPawns(Graphics g) {
         for (Player player: this.players) {
             for (Pawn pawn: player.getMyPawns()) {
@@ -57,7 +58,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
             }
         }
     }
-
+//printing players list
     private void printPlayers(Graphics g) {
         int x = 750;
         int y = 40;
@@ -81,7 +82,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
             g.fillOval(field.getxPosition(), field.getyPosition(), field.getSize(), field.getSize());
         }
     }
-
+//mapping field()
     private void setFields() {
         this.fields = new ArrayList<Field>();
         int xPosition = 400;
@@ -100,7 +101,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
             xPosition = 400;
         }
     }
-
+//mapping pawns on the field
     private void setPawns() {
         this.pawns = new ArrayList<Pawn>();
         for (Player player: this.players) {
@@ -110,9 +111,9 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
             for (int i: this.fieldArray) {
                 xPosition = xPosition - (i*this.size / 2);
                 for(int j = 0; j < i; j++) {
-                    System.out.println("row: " + row + "; j: " + j);
+                    //System.out.println("row: " + row + "; j: " + j);
                     int[] playerPawnsPositions = player.getPlayerPawnsPositions()[row];
-                    if(playerPawnsPositions.length != 0) {	// wchodzimy jeœli player ma w tym wierszu jakieœ pionki
+                    if(playerPawnsPositions.length != 0) {	// wchodzimy jeżeli player ma w tym wierszu jakieś pionki
                         for (int k: playerPawnsPositions) {
                             if (k == j) {
                                 Pawn newPawn = new Pawn(this.size);
@@ -132,7 +133,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
             }
         }
     }
-
+//can you move pawn to this position
     private boolean canPawnMoveThere(Pawn pawn, Field field) {
         int fieldX = field.getxPosition();
         int fieldY = field.getyPosition();
@@ -146,7 +147,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
         }
         return false;
     }
-
+//is field empty or not
     private boolean isFieldOccupied(Field field) {
         for (Pawn anyPawn: this.pawns) {
             if (anyPawn.getX() == field.getxPosition() && anyPawn.getY() == field.getyPosition()) {
@@ -155,7 +156,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
         }
         return false;
     }
-
+//hooping over pawns
     private boolean canPawnHopThere(Pawn pawn, Field jumpOverField, Field destinationField) {
         int innerDistanceX = (jumpOverField.getxPosition() - this.activePawn.getX());
         int innerDistanceY = (jumpOverField.getyPosition() - this.activePawn.getY());
@@ -168,7 +169,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
         }
         return false;
     }
-
+//painting possible moves
     private void setPossibleFields(Graphics g) {
         this.possibleFields = new ArrayList<Field>();
         for (Field field: this.fields) {
@@ -190,7 +191,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
             }
         }
     }
-
+//pawn moving
     private void movePawn(Pawn pawn, Field field) {
 
         if(this.possibleFields.contains(field)) {
@@ -212,7 +213,7 @@ public class Board extends JPanel implements ActionListener, MouseMotionListener
         }
 
     }
-
+//mouse event listener
     public void mouseClicked(MouseEvent arg0) {
         boolean pawnFound = false;
         for (Pawn pawn: this.pawns) {

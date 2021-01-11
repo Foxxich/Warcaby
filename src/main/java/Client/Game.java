@@ -6,10 +6,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class Game implements MouseListener{
-    public Game() {
-        GameConfig gameConfig = new GameConfig();
+    private GameConfig gameConfig;
+    private Board board;
+    private Frame gameFrame;
+    public Game(GameConfig gameConfig) {
+        this.gameConfig = gameConfig;
         Board board = new Board(40, gameConfig);
         Frame gameFrame = new Frame(board);
     }

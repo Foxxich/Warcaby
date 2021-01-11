@@ -1,11 +1,11 @@
 package Client;
 
 public class Field {
-    String id;
-    int size;
-    int xPosition;
-    int yPosition;
-
+    private String id;
+    private int size;
+    private int xPosition;
+    private int yPosition;
+//object field nothing overcomplicated
     public Field(int xPosition, int yPosition, int size, String id) {
         this.xPosition = xPosition;
         this.yPosition = yPosition;

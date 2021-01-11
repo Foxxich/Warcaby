@@ -3,9 +3,9 @@ package Client;
 import javax.swing.JFrame;
 
 public class Frame extends JFrame {
-
-    int width;
-    int height;
+//rendering a window of the game
+private int width;
+private int height;
     public Frame(Board board) {
         super("Chinese checkers");
         add(board);

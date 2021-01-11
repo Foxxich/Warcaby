@@ -1,6 +1,6 @@
 package Server;
 
-import java.util.Set;
+import java.util.ArrayList;
 
 public class PlayerHandler implements Runnable {
     private String name;
@@ -13,45 +13,52 @@ public class PlayerHandler implements Runnable {
         this.data = data;
     }
 
-    private String reciveName() {
-        String temp;
-        while(true) {
-            Set<String> names = data.getNames();
-            player.send("NAME_GET");
-            temp = player.recive();
+    private synchronized String reciveName() {
+        String temp = null;
+            ArrayList<String> names = data.getNames();
+            player.sendStr("NAME_GET");
+            while(temp == null) {
+                temp = player.recive();
+            }
+            System.out.println(temp);
             // Name recived: NAME_SET userName
             temp = temp.substring(9);
-            if(temp == null) {
-                continue;
-            }
             if(!temp.isBlank() && !names.contains(temp)) {
                 data.addName(temp);
-                break;
-            }
         }
 
-        player.send("NAME_ACCEPTED");
+        player.sendStr("NAME_ACCEPTED");
 
         return temp;
+    }
+
+    private synchronized void sendPlayerAmount() {
+        player.sendStr("PLAYERS_NUMBER " + data.getNumberOfPlayers());
+    }
+
+    public synchronized PlayerSocket getPlayer() {
+        return player;
     }
 
     public void run() {
         try {
 
             name = reciveName();
-
-            data.addPlayerSocket(player);
-
-            UserInterface.print(name + " joined.");
+            sendPlayerAmount();
+            data.addPlayerHandlers(this);
+            UserInterface.print(name + " joined. "+player.getSocket().getLocalSocketAddress());
             boolean connected = true;
             while(connected) {
-                String input = player.recive();
+                String input = null;
+                while(input == null) {
+                    input = player.recive();
+                }
                 String[] res = input.split("\\s");
                 switch (res[0]) {
                     case "DISCONNECT": {connected = false;} break;
                     case "MOVE": {
                         if(!data.game.interpretMove(input.substring(5)))
-                            player.send("MOVE_BAD");
+                            player.sendStr("MOVE_BAD");
                         else
                             this.notify();
                     } break;
@@ -64,8 +71,8 @@ public class PlayerHandler implements Runnable {
         }
         finally {
             if (player != null) {
-                player.send("DISCONNECTED");
-                data.deletePlayerSocket(player);
+                player.sendStr("DISCONNECTED");
+                data.deletePlayerHandlers(this);
             }
             if (name != null) {
                 UserInterface.print(name + " left" );

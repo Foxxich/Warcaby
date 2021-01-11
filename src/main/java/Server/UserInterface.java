@@ -3,7 +3,6 @@ package Server;
 import java.util.Scanner;
 
 public class UserInterface {
-
     private static Scanner sc = new Scanner(System.in);
 
     public static void print(String str) {
@@ -31,4 +30,7 @@ public class UserInterface {
             }
         }while(true);
     }
+//    public static void sendPlayersAmount(int r){
+//        PlayerSocket.sendInt(r);
+//    }
 }

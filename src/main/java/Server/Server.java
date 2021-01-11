@@ -1,25 +1,19 @@
 package Server;
+
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.Executors;
 
 
-
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class Server {
 
     private int playerNumber;
     private GameRules gameRules;
+
+    String fromClient;
 
     private static SharedData data;
 
@@ -27,71 +21,73 @@ public class Server {
         data = SharedData.getInstance();
     }
 
-    public static void broadcast(String message) {
-        Set<PlayerSocket> players = data.getPlayerSockets();
-        synchronized (players) {
-            for(PlayerSocket player : players) {
-                player.send(message);
+    public void broadcast(String message) {
+        Collection<PlayerHandler> players = Collections.synchronizedCollection(data.getPlayerHandlers());
+            synchronized (players) {
+                for (PlayerHandler playerHandler : players) {
+                    PlayerSocket playerSocket = playerHandler.getPlayer();
+                    playerSocket.sendStr(message);
+                }
             }
-        }
     }
 
 
     private void getNewConfig() {
         playerNumber = UserInterface.getInt("Podaj liczbe graczy.");
         gameRules = new GameRules();
+
     }
 
-    private void sendColorInfo() {
-        Set<String> colors = new HashSet<String>();
-        colors.add("WHITE");
-        colors.add("RED");
-        colors.add("BLUE");
-        colors.add("BLACK");
-        colors.add("GREEN");
-        colors.add("YELLOW");
-        Iterator<String> iter = data.getNames().iterator();
-        Iterator<String> col = colors.iterator();
-        while(iter.hasNext()) {
-            broadcast("COLOR_SET " + iter.next() + " " + col.next());
+    private void sendPlayersNames() {
+        Collection<String> playersNames = Collections.synchronizedCollection(data.getNames());
+        StringBuilder stringBuilder = new StringBuilder("PLAYERS_NAMES");
+        synchronized (playersNames) {
+            for(String name : playersNames) {
+                stringBuilder.append(" ");
+                stringBuilder.append(name);
+            }
         }
-
+        System.out.println(stringBuilder.toString());
+        broadcast(stringBuilder.toString());
     }
 
+    //start server
     public void start() {
         UserInterface.print("Starting server");
-        while(true) {
+        while (true) {
             UserInterface.print("Starting game");
 
             getNewConfig();
 
             // Wait for players
             UserInterface.print("Waiting for players");
-
+            broadcast("WAITING_PLAYERS");
             int currentPlayerNumber = 0;
 
             Executor pool = Executors.newFixedThreadPool(6);
 
             try (ServerSocket listener = new ServerSocket(59001)) {
-                while(currentPlayerNumber < playerNumber) {
-                    pool.execute(new PlayerHandler(new PlayerSocket(listener.accept()), data));
+                System.out.println("Connected players : " + currentPlayerNumber);
+                while (currentPlayerNumber < playerNumber) {
+
+                    PlayerSocket playerSocket = new PlayerSocket(listener.accept());
+                    pool.execute(new PlayerHandler(playerSocket, data));
+                    currentPlayerNumber++;
+
+                    System.out.println("Player connected :)");
                 }
-            }
-            catch(IOException e) {
+            } catch (IOException e) {
 
             }
-
-            // Give all players informations about colors
-            sendColorInfo();
-
+            sendPlayersNames();
             // Game
             data.game = new Game(gameRules);
-            broadcast("GAME_START");
+            broadcast("START_GAME");
 
             Iterator<String> playerNames = data.getNames().iterator();
 
-            while(data.game.ended()) {
-                if(!playerNames.hasNext())
+            while (data.game.ended()) {
+                if (!playerNames.hasNext())
                     playerNames = data.getNames().iterator();
 
                 broadcast("MOVE_NOW " + playerNames.next());

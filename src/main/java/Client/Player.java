@@ -6,11 +6,11 @@ import java.util.ArrayList;
 
 public class Player {
 
-    ArrayList<Pawn> myPawns;
-    Color color;
-    String nick;
-    int[][] playerPawnsPositions;
-
+    private ArrayList<Pawn> myPawns;
+    private Color color;
+    private String nick;
+    private int[][] playerPawnsPositions;
+//ordianry player class nothing complicated some parameters setter and getter and other things
     public Player() {
         this.myPawns = new ArrayList<Pawn>();
     }

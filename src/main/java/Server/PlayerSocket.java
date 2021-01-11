@@ -1,6 +1,8 @@
 package Server;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
@@ -9,31 +11,45 @@ public class PlayerSocket {
 
     private Socket socket;
     private PrintWriter out;
-    private Scanner in;
+    private BufferedReader in;
 
     public PlayerSocket(Socket socket) throws IOException {
         this.socket = socket;
         out = new PrintWriter(socket.getOutputStream());
-        in = new Scanner(socket.getInputStream());
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
     }
 
-    public void close() {
+    public synchronized Socket getSocket() {
+        return socket;
+    }
+
+    public synchronized void close() {
         out.close();
-        in.close();
 
         try {
+            in.close();
             socket.close();
         } catch (IOException e) {
         }
     }
 
-    public void send(String str) {
+    public synchronized void sendStr(String str) {
         out.println(str);
+        out.flush();
+    }
+    public synchronized void sendInt(int index){
+        out.println(index);
+        out.flush();
     }
 
     public String recive() {
-        String temp = in.nextLine();
+        String temp = null;
+            try {
+                temp = in.readLine();
+            } catch (IOException e) {
+
+            }
         return temp;
     }
 

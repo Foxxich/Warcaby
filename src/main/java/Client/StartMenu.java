@@ -17,28 +17,38 @@ import javax.swing.JTextField;
 
 public class StartMenu {
 
-    String serverAddress;
-    Scanner in;
-    PrintWriter out;
-    JFrame frame = new JFrame("ChineseCheckers - game config");
-    JTextField textField = new JTextField(50);
-    JTextArea messageArea = new JTextArea(16, 50);
+    private String serverAddress;
+    private Scanner in;
+    private PrintWriter out;
+    private JFrame frame = new JFrame("ChineseCheckers - game config");
+    private JTextField textField = new JTextField(50);
+    private JTextArea messageArea = new JTextArea(16, 50);
 
 
     //JFrame frame;
-    JPanel buttonPane, fieldsPanel;
-    JLabel cash, checks;
-    JTextField cashField, checksField;
-    JButton ok, cancel;
+    private JPanel buttonPane, fieldsPanel;
+    private JLabel cash, checks;
+    private JTextField cashField, checksField;
+    private JButton ok, cancel;
+    private String name;
 
+    //output window asking for player's name
     public StartMenu() {
 
-
-        this.getName();
+        //System.out.println(this.getName());
+        name = this.getName();
     }
 
     private String getName() {
         return JOptionPane.showInputDialog(frame, "Choose a screen name:", "Game name selection",
                 JOptionPane.PLAIN_MESSAGE);
     }
+
+    public String getPlayerName() {
+        return name;
+    }
+
+//    public void sentPlayerName(){
+//
+//    }
 }

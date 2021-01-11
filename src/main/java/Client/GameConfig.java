@@ -1,20 +1,38 @@
 package Client;
 
+import Server.PlayerSocket;
+import Server.Server;
+
 import java.awt.Color;
 import java.awt.Shape;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 
 public class GameConfig {
-    int[] fieldArray = {1,2,3,4,13,12,11,10,9,10,11,12,13,4,3,2,1};
-    ArrayList<Shape> fields = new ArrayList<Shape>();
-    ArrayList<Player> players = new ArrayList<Player>();
-
+    public int[] fieldArray = {1,2,3,4,13,12,11,10,9,10,11,12,13,4,3,2,1};
+    public ArrayList<Shape> fields = new ArrayList<Shape>();
+    public ArrayList<Player> players = new ArrayList<Player>();
+    private int amount;
+    private ArrayList<String> names;
 
     public GameConfig() {
-        this.setPlayers(6);
     }
 
-    private void setPlayers(int playerAmount) {
+    public void setPlayersAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public void setNames(ArrayList<String> names) {
+        this.names = names;
+    }
+
+    public void preparePlayers() {
+        while(names.size() < 6) {
+            names.add(" ");
+        }
         Player player1 = new Player();
         Player player2 = new Player();
         Player player3 = new Player();
@@ -27,14 +45,15 @@ public class GameConfig {
         player4.setColor(Color.magenta);
         player5.setColor(Color.orange);
         player6.setColor(Color.pink);
-        player1.setNick("player1");
-        player2.setNick("player2");
-        player3.setNick("player3");
-        player4.setNick("player4");
-        player5.setNick("player5");
-        player6.setNick("player6");
-
-        switch (playerAmount) {
+        // TODO get data from server to fill players name
+        player1.setNick(names.get(0));
+        player2.setNick(names.get(1));
+        player3.setNick(names.get(2));
+        player4.setNick(names.get(3));
+        player5.setNick(names.get(4));
+        player6.setNick(names.get(5));
+        //presets for different amount of players
+        switch (amount) {
             case 2:
                 System.out.println("Setting board for 2 players");
                 player1.setPlayerPawnsPositions(new int[][] {{0}, {0,1}, {0,1,2}, {0,1,2,3}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}});
@@ -81,5 +100,4 @@ public class GameConfig {
 
         }
     }
-
 }
